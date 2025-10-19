@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>webthon</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    padding:0;
+    font-family:"JetBrains Mono", monospace;
+    background:url("x.png") center/cover no-repeat fixed;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .glass{
+    width:90%;
+    max-width:900px;
+    background:rgba(25,0,40,0.8);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(180,0,255,0.3);
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 0 40px rgba(140,0,255,0.4);
+    color:#eee;
+    animation:fadeIn .8s ease;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  h1{
+    text-align:center;
+    margin:0 0 10px 0;
+    font-size:32px;
+    color:#d46aff;
+    text-shadow:0 0 12px #b300ff;
+  }
+  h2{text-align:center;margin:0;font-size:14px;color:#aaa}
+  textarea{
+    width:100%;
+    height:260px;
+    background:#1a002b;
+    color:#f5d3ff;
+    border:1px solid rgba(180,0,255,0.3);
+    border-radius:10px;
+    padding:10px;
+    font-size:14px;
+    resize:vertical;
+    outline:none;
+  }
+  textarea:focus{box-shadow:0 0 10px #a800ff;border-color:#a800ff}
+  .controls{
+    margin-top:12px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  button{
+    flex:1;
+    padding:12px;
+    border:0;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+  }
+  #run{
+    background:linear-gradient(135deg,#a800ff,#ff00ff);
+    color:#fff;
+  }
+  #run:hover{filter:brightness(1.2)}
+  #clear{
+    background:#2d0044;
+    color:#ff9dff;
+    border:1px solid #660099;
+  }
+  #clear:hover{background:#3a005c}
+  pre{
+    margin-top:16px;
+    background:#0d0017;
+    color:#d4bfff;
+    border-radius:10px;
+    padding:14px;
+    min-height:160px;
+    max-height:400px;
+    overflow:auto;
+    font-size:13px;
+    white-space:pre-wrap;
+  }
+  .footer{text-align:center;margin-top:12px;font-size:12px;color:#777}
+</style>
+</head>
+<body>
+  <div class="glass">
+    <h1>webthon</h1>
+    <h2>python in web • basic python</h2>
+    <textarea id="code">print("hey, webthon is working?!")</textarea>
+    <div class="controls">
+      <button id="run">execute</button>
+      <button id="clear">clear</button>
+    </div>
+    <pre id="output">pyodide yükleniyor...</pre>
+    <div class="footer">made with 💜</div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+<script>
+let pyodide, ready=false
+const out=document.getElementById("output")
+
+async function init(){
+  pyodide=await loadPyodide()
+  ready=true
+  out.textContent="webthon hazır!."
+}
+init()
+
+document.getElementById("run").onclick=async()=>{
+  if(!ready){out.textContent="yükleniyor...";return}
+  out.textContent=""
+  const code=document.getElementById("code").value
+  try{
+    pyodide.setStdin({readline:()=>prompt("input():")+"\n"})
+    pyodide.setStdout({batched:(s)=>out.textContent+=s})
+    pyodide.setStderr({batched:(s)=>out.textContent+=s})
+    await pyodide.runPythonAsync(code)
+  }catch(e){
+    out.textContent+="\nhata: "+e
+  }
+}
+
+document.getElementById("clear").onclick=()=>{
+  document.getElementById("code").value=""
+  out.textContent=""
+}
+</script>
+</body>
+  </html>
