@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Webthon v2</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:0;
+  font-family:"JetBrains Mono",monospace;
+  background:url("x.png") center/cover fixed;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.app{
+  width:90%;
+  max-width:1000px;
+  background:rgba(25,0,40,.8);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(180,0,255,.3);
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 0 40px rgba(140,0,255,.4);
+  color:#eee;
+}
+h1{text-align:center;margin:0;font-size:34px;color:#d46aff;text-shadow:0 0 15px #b300ff}
+select,textarea,button{font-family:inherit}
+select{
+  background:#200030;
+  color:#ffbfff;
+  border:1px solid #660099;
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:15px;
+  margin-bottom:12px;
+}
+textarea{
+  width:100%;
+  height:260px;
+  background:#1a002b;
+  color:#f5d3ff;
+  border:1px solid rgba(180,0,255,.3);
+  border-radius:10px;
+  padding:10px;
+  font-size:14px;
+  resize:vertical;
+  outline:none;
+}
+textarea:focus{box-shadow:0 0 10px #a800ff;border-color:#a800ff}
+.controls{margin-top:12px;display:flex;justify-content:space-between;gap:10px}
+button{
+  flex:1;
+  padding:12px;
+  border:0;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.2s;
+}
+#run{background:linear-gradient(135deg,#a800ff,#ff00ff);color:#fff}
+#clear{background:#2d0044;color:#ff9dff;border:1px solid #660099}
+#run:hover,#clear:hover{filter:brightness(1.2)}
+pre{
+  margin-top:16px;
+  background:#0d0017;
+  color:#d4bfff;
+  border-radius:10px;
+  padding:14px;
+  min-height:160px;
+  max-height:400px;
+  overflow:auto;
+  font-size:13px;
+  white-space:pre-wrap;
+}
+.footer{text-align:center;margin-top:10px;font-size:12px;color:#777}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🌌 Webthon v2</h1>
+<select id="lang">
+  <option value="python">Python</option>
+  <option value="javascript">JavaScript</option>
+  <option value="lua">Lua</option>
+  <option value="c">C</option>
+  <option value="html">HTML</option>
+</select>
+<textarea id="code"></textarea>
+<div class="controls">
+  <button id="run">Çalıştır</button>
+  <button id="clear">Temizle</button>
+</div>
+<pre id="output">Pyodide yükleniyor...</pre>
+<div class="footer">Made with 💜 by Ato</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+<script>
+let pyodide, ready=false
+const code=document.getElementById("code")
+const out=document.getElementById("output")
+const lang=document.getElementById("lang")
+
+const examples={
+  python:`print("Hello Webthon!")`,
+  javascript:`console.log("Hello Webthon!")`,
+  lua:`print("Hello Webthon!")`,
+  c:`#include <stdio.h>\nint main(){printf("Hello Webthon!\\n");return 0;}`,
+  html:`<!doctype html>\n<html><body><h1>Hello Webthon!</h1></body></html>`
+}
+code.value=examples.python
+
+lang.onchange=()=>{
+  code.value=examples[lang.value]||""
+  out.textContent=""
+}
+
+async function init(){
+  pyodide=await loadPyodide()
+  ready=true
+  out.textContent="Hazır! Dilini seç, kodunu yaz, sonra Çalıştır'a bas."
+}
+init()
+
+document.getElementById("run").onclick=async()=>{
+  out.textContent=""
+  const l=lang.value, c=code.value
+  if(l==="python"){
+    if(!ready){out.textContent="Pyodide yükleniyor...";return}
+    try{
+      pyodide.setStdin({readline:()=>prompt("input():")+"\n"})
+      pyodide.setStdout({batched:s=>out.textContent+=s})
+      pyodide.setStderr({batched:s=>out.textContent+=s})
+      await pyodide.runPythonAsync(c)
+    }catch(e){out.textContent+="\nHata: "+e}
+  }else if(l==="javascript"){
+    try{out.textContent=eval(c)||""}catch(e){out.textContent="Hata: "+e}
+  }else if(l==="html"){
+    const w=window.open("","_blank");w.document.write(c);w.document.close()
+    out.textContent="Yeni sekmede açıldı."
+  }else{
+    out.textContent="Bu dil tarayıcıda derlenemiyor."
+  }
+}
+
+document.getElementById("clear").onclick=()=>{
+  code.value=""
+  out.textContent=""
+}
+</script>
+</body>
+  </html>
